@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#D85A30">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="4x4 Løping">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<title>4x4 Intervalltrening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f0f1a;
+  --bg2: #181828;
+  --bg3: #1e1e32;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --text: #f0f0f5;
+  --text2: #8888a8;
+  --text3: #555570;
+  --work: #D85A30;
+  --work-bg: rgba(216,90,48,0.12);
+  --work-border: rgba(216,90,48,0.3);
+  --rest: #1D9E75;
+  --rest-bg: rgba(29,158,117,0.12);
+  --rest-border: rgba(29,158,117,0.3);
+  --done: #639922;
+  --done-bg: rgba(99,153,34,0.12);
+  --purple: #7F77DD;
+  --accent: #D85A30;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+body { display: flex; flex-direction: column; }
+
+/* Install banner */
+#install-banner {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text2);
+}
+#install-banner button {
+  margin-left: auto;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Tab bar */
+.tab-bar {
+  display: flex;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 4px;
+  flex-shrink: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color .2s;
+  font-family: var(--font);
+}
+.tab.active { color: var(--accent); }
+.tab svg { width: 22px; height: 22px; }
+
+/* Scroll area */
+.view { display: none; flex: 1; overflow-y: auto; padding: 14px 14px calc(env(safe-area-inset-bottom, 0px) + 14px); }
+.view.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.sec-label {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 12px;
+}
+
+/* Phase box */
+.phase-box {
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  text-align: center;
+  margin-bottom: 10px;
+  transition: background .4s, border-color .4s;
+}
+.ph-idle { background: var(--bg3); border: 1px solid var(--border); }
+.ph-work { background: var(--work-bg); border: 1px solid var(--work-border); }
+.ph-rest { background: var(--rest-bg); border: 1px solid var(--rest-border); }
+.ph-done { background: var(--done-bg); border: 1px solid rgba(99,153,34,.3); }
+.phase-name { font-size: 16px; font-weight: 600; }
+.ph-idle .phase-name { color: var(--text2); }
+.ph-work .phase-name { color: var(--work); }
+.ph-rest .phase-name { color: var(--rest); }
+.ph-done .phase-name { color: var(--done); }
+.phase-sub { font-size: 13px; margin-top: 4px; }
+.ph-idle .phase-sub { color: var(--text3); }
+.ph-work .phase-sub { color: #f0997b; }
+.ph-rest .phase-sub { color: #5DCAA5; }
+.ph-done .phase-sub { color: #97c459; }
+
+/* Timer */
+.timer {
+  font-size: 72px;
+  font-weight: 500;
+  text-align: center;
+  font-family: var(--mono);
+  color: var(--text);
+  margin: 4px 0;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+/* Progress bar */
+.prog-outer { background: var(--bg3); border-radius: 100px; height: 5px; margin-bottom: 14px; overflow: hidden; }
+.prog-inner { height: 100%; border-radius: 100px; transition: width .5s linear, background .4s; }
+
+/* Dots */
+.dots { display: flex; justify-content: center; gap: 10px; margin-bottom: 14px; }
+.dot {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; color: var(--text3); font-weight: 600;
+  transition: all .3s;
+}
+.dot.done { background: var(--rest); border-color: var(--rest); color: white; }
+.dot.active { background: var(--work); border-color: var(--work); color: white; }
+
+/* Metrics */
+.metrics-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+.metric { background: var(--bg3); border-radius: var(--radius-sm); padding: 12px 8px; text-align: center; }
+.metric-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.metric-value { font-size: 28px; font-weight: 600; font-family: var(--mono); color: var(--text); line-height: 1; }
+.metric-unit { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.hr-low { color: #5DCAA5 !important; }
+.hr-mid { color: #FAC775 !important; }
+.hr-hi { color: #F09595 !important; }
+
+/* Speed inputs */
+.speed-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.ig label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 6px; }
+.ig input, .ig select {
+  width: 100%;
+  padding: 10px;
+  font-size: 22px;
+  font-weight: 600;
+  font-family: var(--mono);
+  text-align: center;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  -webkit-appearance: none;
+}
+.ig .unit { font-size: 11px; color: var(--text3); text-align: center; margin-top: 4px; }
+
+/* Buttons */
+.btn-row { display: flex; gap: 8px; }
+.btn {
+  flex: 1; padding: 14px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .15s;
+  -webkit-appearance: none;
+}
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+.btn.danger { border-color: rgba(240,153,123,.4); color: #F0997B; }
+.btn.danger:active { background: rgba(216,90,48,.1); }
+.btn:disabled { opacity: .35; pointer-events: none; }
+
+/* BLE */
+.ble-row { display: flex; align-items: center; gap: 10px; }
+.ble-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+.ble-dot.on { background: var(--rest); }
+.ble-dot.scan { background: #FAC775; animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1}50%{opacity:.2} }
+.ble-status { flex: 1; font-size: 13px; color: var(--text2); }
+.ble-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-family: var(--font);
+  flex-shrink: 0;
+}
+
+/* Profile inputs */
+.profile-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 10px; }
+.profile-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+
+/* VO2 display */
+.vo2-big {
+  text-align: center;
+  padding: 20px 16px 16px;
+  background: var(--bg3);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+.vo2-num { font-size: 60px; font-weight: 600; font-family: var(--mono); line-height: 1; }
+.vo2-sub { font-size: 13px; color: var(--text2); margin-top: 6px; }
+.vo2-cat {
+  display: inline-block;
+  padding: 5px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+.cat-poor { background: rgba(226,75,74,.15); color: #F09595; }
+.cat-fair { background: rgba(186,117,23,.15); color: #FAC775; }
+.cat-good { background: rgba(55,138,221,.15); color: #85B7EB; }
+.cat-excel { background: rgba(99,153,34,.15); color: #97C459; }
+.cat-superior { background: rgba(127,119,221,.15); color: #AFA9EC; }
+
+/* Compare bars */
+.compare-bar-wrap { margin-bottom: 10px; }
+.compare-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 5px; }
+.compare-track { height: 14px; border-radius: 100px; position: relative; overflow: visible; }
+.compare-marker { position: absolute; top: -5px; width: 3px; height: 24px; border-radius: 2px; background: var(--text); }
+
+/* History */
+.sess-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; margin-bottom: 10px; }
+.ss { background: var(--bg3); border-radius: var(--radius-sm); padding: 8px; text-align: center; }
+.ss-label { font-size: 10px; color: var(--text3); }
+.ss-val { font-size: 16px; font-weight: 600; font-family: var(--mono); color: var(--text); }
+.zone-bar-row { display: flex; height: 16px; border-radius: 100px; overflow: hidden; margin-bottom: 5px; }
+.zone-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.zone-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text2); }
+.zone-sq { width: 9px; height: 9px; border-radius: 2px; }
+.del-btn {
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text3);
+  font-size: 12px; padding: 5px 10px; cursor: pointer;
+  font-family: var(--font); flex-shrink: 0;
+}
+.del-btn:active { color: #F09595; border-color: rgba(240,153,123,.4); }
+.sess-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.chart-wrap { position: relative; width: 100%; height: 160px; margin-top: 12px; }
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; line-height: 1.8; }
+
+/* Progress tab */
+.prog-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.prog-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; font-size: 12px; color: var(--text2); }
+.prog-legend span { display: flex; align-items: center; gap: 5px; }
+.leg-sq { width: 10px; height: 10px; border-radius: 2px; }
+.leg-line { width: 16px; height: 2px; }
+
+/* Save confirmation */
+.saved-toast {
+  font-size: 13px; color: var(--rest);
+  margin-top: 8px; display: none;
+}
+</style>
+</head>
+<body>
+
+<div id="install-banner">
+  <span>Installer appen på hjemskjermen</span>
+  <button id="installBtn">Installer</button>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="sw('train')" id="tab-train">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="5,3 19,12 5,21"/></svg>
+    Trening
+  </button>
+  <button class="tab" onclick="sw('profile')" id="tab-profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Profil
+  </button>
+  <button class="tab" onclick="sw('history')" id="tab-history">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,15"/></svg>
+    Historikk
+  </button>
+  <button class="tab" onclick="sw('progress')" id="tab-progress">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="14,7 21,7 21,14"/></svg>
+    Progresjon
+  </button>
+</div>
+
+<!-- TRAIN -->
+<div id="view-train" class="view active">
+  <div class="card">
+    <div class="sec-label">Pulsmåler</div>
+    <div class="ble-row">
+      <div class="ble-dot" id="bleDot"></div>
+      <span class="ble-status" id="bleStatus">Ikke tilkoblet – simulerer puls</span>
+      <button class="ble-btn" id="bleBtn">Koble til</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-label">Hastighetsinnstillinger</div>
+    <div class="speed-row">
+      <div class="ig"><label>Intensiv (4 min)</label><input type="number" id="workSpeed" value="12.0" min="1" max="25" step="0.5" inputmode="decimal"><div class="unit">km/t</div></div>
+      <div class="ig"><label>Hvile (3 min)</label><input type="number" id="restSpeed" value="6.0" min="1" max="15" step="0.5" inputmode="decimal"><div class="unit">km/t</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="phase-box ph-idle" id="phaseBox">
+      <div class="phase-name" id="phaseName">Klar til start</div>
+      <div class="phase-sub" id="phaseSub">Still inn hastigheter og trykk start</div>
+    </div>
+    <div class="timer" id="timerDisplay">4:00</div>
+    <div class="prog-outer"><div class="prog-inner" id="progressBar" style="width:100%;background:var(--work)"></div></div>
+    <div class="dots">
+      <div class="dot" id="dot1">1</div><div class="dot" id="dot2">2</div>
+      <div class="dot" id="dot3">3</div><div class="dot" id="dot4">4</div>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric"><div class="metric-label">Puls</div><div class="metric-value" id="hrVal">--</div><div class="metric-unit">bpm</div></div>
+      <div class="metric"><div class="metric-label">Hastighet</div><div class="metric-value" id="speedVal">--</div><div class="metric-unit">km/t</div></div>
+      <div class="metric"><div class="metric-label">Intervall</div><div class="metric-value" id="intVal">0/4</div><div class="metric-unit">fullført</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="startBtn">▶ Start</button>
+      <button class="btn danger" id="resetBtn" disabled>↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="view-profile" class="view">
+  <div class="card">
+    <div class="sec-label">Din profil</div>
+    <div class="profile-grid">
+      <div class="ig"><label>Alder</label><input type="number" id="pAge" min="10" max="100" placeholder="35" inputmode="numeric"><div class="unit">år</div></div>
+      <div class="ig"><label>Vekt</label><input type="number" id="pWeight" min="30" max="200" step="0.5" placeholder="75" inputmode="decimal"><div class="unit">kg</div></div>
+      <div class="ig"><label>Høyde</label><input type="number" id="pHeight" min="100" max="220" placeholder="178" inputmode="numeric"><div class="unit">cm</div></div>
+    </div>
+    <div class="profile-grid2">
+      <div class="ig"><label>Kjønn</label>
+        <select id="pGender" style="font-size:16px;padding:10px 8px;font-family:var(--font);">
+          <option value="male">Mann</option><option value="female">Kvinne</option>
+        </select>
+      </div>
+      <div class="ig"><label>Maks puls</label><input type="number" id="pMaxHR" min="140" max="220" placeholder="Auto" inputmode="numeric"><div class="unit">bpm (valgfritt)</div></div>
+    </div>
+    <button class="btn primary" onclick="saveProfile()" style="width:100%">✓ Lagre profil</button>
+    <div class="saved-toast" id="profileSaved">✓ Profil lagret</div>
+  </div>
+  <div class="card" id="vo2preview" style="display:none">
+    <div class="sec-label">VO2maks – siste økt</div>
+    <div id="vo2previewContent"></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="view-history" class="view">
+  <div id="historyList">
+    <div class="empty-state">Ingen økter enda.<br>Fullfør din første 4x4!</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div id="view-progress" class="view">
+  <div id="progressView">
+    <div class="empty-state">Fullfør minst én økt<br>for å se progresjon.</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ── Constants ──────────────────────────────────────────────
+const WORK_TIME=240,REST_TIME=180,N_INT=4;
+const ZONES=[
+  {name:'Hvile',color:'#378ADD',max:109},
+  {name:'Lett',color:'#1D9E75',max:129},
+  {name:'Moderat',color:'#EF9F27',max:149},
+  {name:'Hard',color:'#D85A30',max:169},
+  {name:'Maks',color:'#E24B4A',max:220}
+];
+const VO2_NORMS={
+  male:[
+    {age:[20,29],poor:33,fair:37,good:44,excel:50,sup:56},
+    {age:[30,39],poor:31,fair:35,good:42,excel:47,sup:53},
+    {age:[40,49],poor:28,fair:33,good:39,excel:44,sup:50},
+    {age:[50,59],poor:25,fair:29,good:35,excel:40,sup:46},
+    {age:[60,69],poor:21,fair:25,good:30,excel:35,sup:41},
+    {age:[70,99],poor:18,fair:22,good:26,excel:31,sup:37}
+  ],
+  female:[
+    {age:[20,29],poor:27,fair:31,good:37,excel:42,sup:48},
+    {age:[30,39],poor:25,fair:29,good:35,excel:40,sup:46},
+    {age:[40,49],poor:22,fair:26,good:32,excel:37,sup:43},
+    {age:[50,59],poor:19,fair:23,good:28,excel:33,sup:39},
+    {age:[60,69],poor:16,fair:20,good:24,excel:29,sup:35},
+    {age:[70,99],poor:14,fair:17,good:21,excel:25,sup:30}
+  ]
+};
+
+function getNorm(gender,age){
+  const t=VO2_NORMS[gender]||VO2_NORMS.male;
+  return t.find(r=>age>=r.age[0]&&age<=r.age[1])||t[t.length-1];
+}
+function calcVO2(maxHR,restHR,gender){
+  if(!maxHR||!restHR||restHR<=0)return null;
+  let v=15*(maxHR/restHR);
+  if(gender==='female')v*=0.85;
+  return Math.round(v*10)/10;
+}
+function vo2Cat(v,norm){
+  if(!v||!norm)return null;
+  if(v<norm.poor)return{label:'Under gjennomsnitt',cls:'cat-poor',color:'#F09595'};
+  if(v<norm.fair)return{label:'Dårlig',cls:'cat-poor',color:'#F09595'};
+  if(v<norm.good)return{label:'Akseptabel',cls:'cat-fair',color:'#FAC775'};
+  if(v<norm.excel)return{label:'God',cls:'cat-good',color:'#85B7EB'};
+  if(v<norm.sup)return{label:'Veldig god',cls:'cat-excel',color:'#97C459'};
+  return{label:'Fremragende',cls:'cat-superior',color:'#AFA9EC'};
+}
+
+// ── Storage ────────────────────────────────────────────────
+function loadProfile(){try{return JSON.parse(localStorage.getItem('4x4-profile')||'{}');}catch(e){return{};}}
+function loadSessions(){try{return JSON.parse(localStorage.getItem('4x4-sessions')||'[]');}catch(e){return[];}}
+function saveSessions(s){localStorage.setItem('4x4-sessions',JSON.stringify(s));}
+
+function saveProfile(){
+  const p={
+    age:+document.getElementById('pAge').value||0,
+    weight:+document.getElementById('pWeight').value||0,
+    height:+document.getElementById('pHeight').value||0,
+    gender:document.getElementById('pGender').value,
+    maxHR:+document.getElementById('pMaxHR').value||0
+  };
+  localStorage.setItem('4x4-profile',JSON.stringify(p));
+  const t=document.getElementById('profileSaved');
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',2000);
+  renderVO2Preview();
+}
+function fillProfile(){
+  const p=loadProfile();
+  if(p.age)document.getElementById('pAge').value=p.age;
+  if(p.weight)document.getElementById('pWeight').value=p.weight;
+  if(p.height)document.getElementById('pHeight').value=p.height;
+  if(p.gender)document.getElementById('pGender').value=p.gender;
+  if(p.maxHR)document.getElementById('pMaxHR').value=p.maxHR;
+}
+
+// ── VO2 HTML ───────────────────────────────────────────────
+function vo2HTML(vo2,p){
+  if(!vo2||!p||!p.age)return '<p style="color:var(--text3);font-size:14px">Fyll inn profil for VO2maks-analyse.</p>';
+  const norm=getNorm(p.gender||'male',p.age);
+  const cat=vo2Cat(vo2,norm);
+  const bmi=p.weight&&p.height?Math.round(p.weight/((p.height/100)**2)*10)/10:null;
+  const ageBands=[
+    {label:'20–29 år',norm:getNorm(p.gender||'male',25)},
+    {label:'30–39 år',norm:getNorm(p.gender||'male',35)},
+    {label:'40–49 år',norm:getNorm(p.gender||'male',45)},
+    {label:'50–59 år',norm:getNorm(p.gender||'male',55)},
+    {label:'60–69 år',norm:getNorm(p.gender||'male',65)}
+  ];
+  const bars=ageBands.map(b=>{
+    const bMax=b.norm.sup+15;
+    const mp=Math.min(97,Math.round(vo2/bMax*100));
+    const g1=Math.round(b.norm.fair/bMax*100);
+    const g2=Math.round(b.norm.excel/bMax*100);
+    const g3=Math.round(b.norm.sup/bMax*100);
+    return `<div class="compare-bar-wrap">
+      <div class="compare-label"><span>${b.label}</span><span style="font-size:10px">god: ${b.norm.good}+ · veldig god: ${b.norm.excel}+</span></div>
+      <div class="compare-track" style="background:linear-gradient(to right,rgba(226,75,74,.2) ${g1}%,rgba(99,153,34,.2) ${g1}%,rgba(99,153,34,.2) ${g2}%,rgba(55,138,221,.2) ${g2}%,rgba(55,138,221,.2) ${g3}%,rgba(127,119,221,.2) ${g3}%)">
+        <div class="compare-marker" style="left:${mp}%"></div>
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="vo2-big">
+    <div class="vo2-num" style="color:${cat.color}">${vo2}</div>
+    <div class="vo2-sub">${p.gender==='female'?'Kvinne':'Mann'}, ${p.age} år${bmi?' · BMI '+bmi:''}</div>
+    <span class="vo2-cat ${cat.cls}">${cat.label} for din alder</span>
+  </div>
+  <div class="sec-label" style="margin-bottom:8px">Sammenligning på tvers av alder</div>
+  <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Hvit strek = din VO2maks. Rød→grønn→blå→lilla = bedre soner.</p>
+  ${bars}`;
+}
+
+function renderVO2Preview(){
+  const sessions=loadSessions(),p=loadProfile();
+  const el=document.getElementById('vo2preview');
+  if(!sessions.length||!p.age){el.style.display='none';return;}
+  const last=sessions[sessions.length-1];
+  if(!last.vo2){el.style.display='none';return;}
+  el.style.display='block';
+  document.getElementById('vo2previewContent').innerHTML=vo2HTML(last.vo2,p);
+}
+
+// ── State ──────────────────────────────────────────────────
+let bleDevice=null,bleChar=null,simInt=null;
+let state='idle',phase='work',intIdx=0,timeLeft=WORK_TIME,totalTime=WORK_TIME;
+let ticker=null,pulseSamples=[],phaseLog=[],hrTimeline=[];
+let currentHR=null;
+
+function fmt(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function updateHR(v){
+  currentHR=v;
+  const el=document.getElementById('hrVal');
+  el.textContent=v?v:'--';
+  el.className='metric-value'+(v?v<130?' hr-low':v<160?' hr-mid':' hr-hi':'');
+}
+
+function updatePhaseUI(){
+  const box=document.getElementById('phaseBox'),nm=document.getElementById('phaseName'),sb=document.getElementById('phaseSub'),bar=document.getElementById('progressBar'),sv=document.getElementById('speedVal');
+  if(state==='idle'){box.className='phase-box ph-idle';nm.textContent='Klar til start';sb.textContent='Still inn hastigheter og trykk start';sv.textContent='--';bar.style.background='var(--work)';}
+  else if(state==='done'){box.className='phase-box ph-done';nm.textContent='4x4 fullført!';sb.textContent='Bra jobba – sjekk historikken';sv.textContent='--';}
+  else if(phase==='work'){const ws=+document.getElementById('workSpeed').value;box.className='phase-box ph-work';nm.textContent='Intensiv – intervall '+(intIdx+1);sb.textContent='Sett tredemølle til '+ws.toFixed(1)+' km/t';sv.textContent=ws.toFixed(1);bar.style.background='var(--work)';}
+  else{const rs=+document.getElementById('restSpeed').value;box.className='phase-box ph-rest';nm.textContent='Hvile – '+intIdx+' av 4 ferdig';sb.textContent='Sett tredemølle til '+rs.toFixed(1)+' km/t';sv.textContent=rs.toFixed(1);bar.style.background='var(--rest)';}
+}
+function updateDots(){
+  for(let i=1;i<=4;i++){
+    const d=document.getElementById('dot'+i);
+    d.className='dot';
+    if(i<=intIdx)d.classList.add('done');
+    else if(state==='running'&&i===intIdx+1&&phase==='work')d.classList.add('active');
+  }
+}
+function updateTimer(){
+  document.getElementById('timerDisplay').textContent=fmt(timeLeft);
+  document.getElementById('progressBar').style.width=(timeLeft/totalTime*100).toFixed(1)+'%';
+  document.getElementById('intVal').textContent=intIdx+'/4';
+}
+
+function endPhase(){
+  const avg=pulseSamples.length?Math.round(pulseSamples.reduce((a,b)=>a+b)/pulseSamples.length):null;
+  const spd=phase==='work'?+document.getElementById('workSpeed').value:+document.getElementById('restSpeed').value;
+  phaseLog.push({phase,avgHR:avg,speed:spd,hrSamples:[...pulseSamples]});
+  pulseSamples=[];
+  if(phase==='work'){intIdx++;if(intIdx>=N_INT){finish();return;}phase='rest';timeLeft=REST_TIME;totalTime=REST_TIME;}
+  else{phase='work';timeLeft=WORK_TIME;totalTime=WORK_TIME;}
+  updatePhaseUI();updateDots();updateTimer();
+  if('vibrate' in navigator)navigator.vibrate([200,100,200]);
+}
+
+function calcSessionVO2(){
+  const p=loadProfile();
+  if(!p.age)return null;
+  const allHR=phaseLog.flatMap(pl=>pl.hrSamples).filter(Boolean);
+  if(!allHR.length)return null;
+  const maxHR=p.maxHR||(220-p.age);
+  const restSamples=phaseLog.filter(pl=>pl.phase==='rest').flatMap(pl=>pl.hrSamples).filter(Boolean);
+  const restHR=restSamples.length?Math.round(restSamples.reduce((a,b)=>a+b)/restSamples.length):Math.min(...allHR);
+  return calcVO2(maxHR,restHR,p.gender||'male');
+}
+
+function calcZones(samples){
+  const c=ZONES.map(()=>0);
+  samples.forEach(h=>{for(let i=0;i<ZONES.length;i++){if(h<=ZONES[i].max){c[i]++;break;}}});
+  return c;
+}
+
+function finish(){
+  state='done';clearInterval(ticker);
+  saveSession();updatePhaseUI();updateDots();
+  document.getElementById('startBtn').textContent='▶ Start ny';
+  document.getElementById('startBtn').disabled=false;
+  document.getElementById('resetBtn').disabled=false;
+  document.getElementById('timerDisplay').textContent='0:00';
+  if(!bleChar)stopSim();
+  if('vibrate' in navigator)navigator.vibrate([300,200,300,200,500]);
+}
+
+function saveSession(){
+  const wP=phaseLog.filter(p=>p.phase==='work');
+  const allHR=phaseLog.flatMap(p=>p.hrSamples).filter(Boolean);
+  const avgHR=allHR.length?Math.round(allHR.reduce((a,b)=>a+b)/allHR.length):null;
+  const maxHR=allHR.length?Math.max(...allHR):null;
+  const avgWS=wP.length?+(wP.reduce((a,p)=>a+p.speed,0)/wP.length).toFixed(1):0;
+  const rP=phaseLog.filter(p=>p.phase==='rest');
+  const avgRS=rP.length?+(rP.reduce((a,p)=>a+p.speed,0)/rP.length).toFixed(1):0;
+  const zc=calcZones(allHR);
+  const tot=allHR.length||1;
+  const zp=zc.map(c=>Math.round(c/tot*100));
+  const vo2=calcSessionVO2();
+  const s={
+    id:Date.now(),
+    date:new Date().toLocaleDateString('nb-NO',{day:'numeric',month:'short',year:'numeric'}),
+    time:new Date().toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'}),
+    avgHR,maxHR,avgWorkSpeed:avgWS,avgRestSpeed:avgRS,zonePcts:zp,vo2,
+    hrTimeline:[...hrTimeline]
+  };
+  const sessions=loadSessions();sessions.push(s);saveSessions(sessions);
+}
+
+function deleteSession(id){
+  saveSessions(loadSessions().filter(s=>s.id!==id));
+  renderHistory();renderProgress();
+}
+
+function tick(){
+  if(currentHR)pulseSamples.push(currentHR);
+  if(currentHR)hrTimeline.push({t:hrTimeline.length,h:currentHR,phase});
+  timeLeft--;
+  if(timeLeft<=0)endPhase();else updateTimer();
+}
+
+// ── Controls ───────────────────────────────────────────────
+document.getElementById('startBtn').addEventListener('click',()=>{
+  if(state==='done'||state==='idle'){
+    state='running';phase='work';intIdx=0;timeLeft=WORK_TIME;totalTime=WORK_TIME;
+    pulseSamples=[];phaseLog=[];hrTimeline=[];
+    document.getElementById('startBtn').textContent='⏸ Pause';
+    document.getElementById('resetBtn').disabled=false;
+    updatePhaseUI();updateDots();updateTimer();
+    ticker=setInterval(tick,1000);startSim();
+  }else if(state==='running'){
+    state='paused';clearInterval(ticker);
+    document.getElementById('startBtn').textContent='▶ Fortsett';
+  }else if(state==='paused'){
+    state='running';ticker=setInterval(tick,1000);
+    document.getElementById('startBtn').textContent='⏸ Pause';
+  }
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  state='idle';clearInterval(ticker);phase='work';intIdx=0;timeLeft=WORK_TIME;totalTime=WORK_TIME;
+  pulseSamples=[];phaseLog=[];hrTimeline=[];
+  updatePhaseUI();updateDots();updateTimer();
+  document.getElementById('startBtn').textContent='▶ Start';
+  document.getElementById('resetBtn').disabled=true;stopSim();
+});
+
+// ── BLE ────────────────────────────────────────────────────
+function startSim(){
+  if(bleChar)return;
+  let base=70;
+  simInt=setInterval(()=>{
+    if(state!=='running')return;
+    const t=phase==='work'?165:110;
+    base+=(t-base)*0.05+(Math.random()-.5)*3;
+    updateHR(Math.round(Math.max(50,Math.min(200,base))));
+  },1000);
+}
+function stopSim(){clearInterval(simInt);updateHR(null);}
+
+async function connectBLE(){
+  const btn=document.getElementById('bleBtn'),dot=document.getElementById('bleDot'),st=document.getElementById('bleStatus');
+  if(!navigator.bluetooth){st.textContent='Bluetooth støttes ikke – bruk Chrome';return;}
+  dot.className='ble-dot scan';st.textContent='Søker...';btn.disabled=true;
+  try{
+    bleDevice=await navigator.bluetooth.requestDevice({filters:[{services:['heart_rate']}],optionalServices:['heart_rate']});
+    st.textContent='Kobler til...';
+    const srv=await bleDevice.gatt.connect();
+    const svc=await srv.getPrimaryService('heart_rate');
+    bleChar=await svc.getCharacteristic('heart_rate_measurement');
+    await bleChar.startNotifications();
+    bleChar.addEventListener('characteristicvaluechanged',e=>{
+      const v=e.target.value,f=v.getUint8(0);
+      updateHR(f&1?v.getUint16(1,true):v.getUint8(1));
+    });
+    dot.className='ble-dot on';st.textContent=bleDevice.name+' tilkoblet';btn.textContent='Koble fra';btn.disabled=false;stopSim();
+    bleDevice.addEventListener('gattserverdisconnected',()=>{dot.className='ble-dot';st.textContent='Frakoblet';btn.textContent='Koble til';bleChar=null;});
+  }catch(err){
+    dot.className='ble-dot';
+    st.textContent=err.name==='NotFoundError'?'Ingen enhet valgt':'Feil: '+err.message;
+    btn.disabled=false;
+  }
+}
+document.getElementById('bleBtn').addEventListener('click',()=>{
+  if(bleDevice&&bleDevice.gatt.connected)bleDevice.gatt.disconnect();else connectBLE();
+});
+
+// ── Render helpers ─────────────────────────────────────────
+function zoneBarHTML(zp){
+  const bars=ZONES.map((z,i)=>zp[i]>0?`<div style="width:${zp[i]}%;background:${z.color};height:100%" title="${z.name}: ${zp[i]}%"></div>`:'').join('');
+  const leg=ZONES.map((z,i)=>zp[i]>0?`<span class="zone-item"><span class="zone-sq" style="background:${z.color}"></span>${z.name} ${zp[i]}%</span>`:'').join('');
+  return `<div class="zone-bar-row">${bars}</div><div class="zone-legend">${leg}</div>`;
+}
+
+let histCharts=[];
+function renderHistory(){
+  const sessions=loadSessions();
+  const c=document.getElementById('historyList');
+  if(!sessions.length){c.innerHTML='<div class="empty-state">Ingen økter enda.<br>Fullfør din første 4x4!</div>';return;}
+  histCharts.forEach(ch=>{try{ch.destroy();}catch(e){}});histCharts=[];
+  const p=loadProfile();
+  c.innerHTML='';
+  [...sessions].reverse().forEach(s=>{
+    const div=document.createElement('div');div.className='card';
+    const vo2sec=s.vo2?`<div style="margin-bottom:10px"><div class="sec-label" style="margin-bottom:8px">VO2maks</div>${vo2HTML(s.vo2,p)}</div>`:'';
+    div.innerHTML=`
+      <div class="sess-hdr">
+        <div>
+          <div style="font-size:15px;font-weight:600;color:var(--text)">${s.date} kl. ${s.time}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">4×4 min intervall</div>
+        </div>
+        <button class="del-btn" onclick="deleteSession(${s.id})">✕</button>
+      </div>
+      <div class="sess-stats">
+        <div class="ss"><div class="ss-label">Snitt puls</div><div class="ss-val">${s.avgHR||'--'}</div></div>
+        <div class="ss"><div class="ss-label">Maks puls</div><div class="ss-val">${s.maxHR||'--'}</div></div>
+        <div class="ss"><div class="ss-label">Int. fart</div><div class="ss-val">${s.avgWorkSpeed}</div></div>
+        <div class="ss"><div class="ss-label">VO2maks</div><div class="ss-val" style="color:var(--purple)">${s.vo2||'--'}</div></div>
+      </div>
+      <div class="sec-label" style="margin-bottom:6px">Pulssoner</div>
+      ${zoneBarHTML(s.zonePcts)}
+      ${vo2sec}
+      ${s.hrTimeline&&s.hrTimeline.length?`<div class="chart-wrap"><canvas id="hrc-${s.id}" role="img" aria-label="Pulskurve">Puls.</canvas></div>`:''}`;
+    c.appendChild(div);
+    if(s.hrTimeline&&s.hrTimeline.length){
+      setTimeout(()=>{
+        const ch=new Chart(document.getElementById('hrc-'+s.id),{
+          type:'line',
+          data:{labels:s.hrTimeline.map(p=>fmt(p.t)),datasets:[{label:'Puls',data:s.hrTimeline.map(p=>p.h),borderColor:'#378ADD',borderWidth:1.5,pointRadius:0,tension:0.3,fill:false}]},
+          options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#555570',maxRotation:0,autoSkip:true,maxTicksLimit:6,font:{size:10}},grid:{display:false}},y:{min:50,max:200,ticks:{color:'#555570',font:{size:10}},grid:{color:'rgba(255,255,255,0.05)'}}}}
+        });
+        histCharts.push(ch);
+      },100);
+    }
+  });
+}
+
+let progCharts=[];
+function renderProgress(){
+  const sessions=loadSessions();
+  const c=document.getElementById('progressView');
+  if(!sessions.length){c.innerHTML='<div class="empty-state">Fullfør minst én økt.</div>';return;}
+  progCharts.forEach(ch=>{try{ch.destroy();}catch(e){}});progCharts=[];
+  const labels=sessions.map(s=>s.date.split(' ').slice(0,2).join(' '));
+  const vo2s=sessions.map(s=>s.vo2||null);
+  const avgHRs=sessions.map(s=>s.avgHR||null);
+  const maxHRs=sessions.map(s=>s.maxHR||null);
+  const wS=sessions.map(s=>s.avgWorkSpeed);
+  const rS=sessions.map(s=>s.avgRestSpeed);
+  const tck={color:'#555570',font:{size:10},autoSkip:false,maxRotation:30};
+  const grd={color:'rgba(255,255,255,0.05)'};
+  c.innerHTML=`
+    ${vo2s.some(v=>v)?`<div class="prog-card">
+      <div class="sec-label">VO2maks-utvikling</div>
+      <div class="prog-legend"><span><span class="leg-sq" style="background:#7F77DD"></span>VO2maks</span></div>
+      <div class="chart-wrap"><canvas id="pg-vo2" role="img" aria-label="VO2maks">VO2.</canvas></div></div>`:''}
+    <div class="prog-card">
+      <div class="sec-label">Pulsutvikling</div>
+      <div class="prog-legend"><span><span class="leg-line" style="background:#E24B4A"></span>Maks puls</span><span><span class="leg-line" style="background:#378ADD;border-top:2px dashed #378ADD;height:0"></span>Snitt puls</span></div>
+      <div class="chart-wrap"><canvas id="pg-hr" role="img" aria-label="Puls">Puls.</canvas></div></div>
+    <div class="prog-card">
+      <div class="sec-label">Hastighetsutvikling</div>
+      <div class="prog-legend"><span><span class="leg-sq" style="background:#D85A30"></span>Intensiv</span><span><span class="leg-sq" style="background:#1D9E75"></span>Hvile</span></div>
+      <div class="chart-wrap"><canvas id="pg-spd" role="img" aria-label="Hastighet">Hastighet.</canvas></div></div>
+    <div class="prog-card">
+      <div class="sec-label">Pulssoner over tid</div>
+      <div class="prog-legend">${ZONES.map(z=>`<span><span class="leg-sq" style="background:${z.color}"></span>${z.name}</span>`).join('')}</div>
+      <div class="chart-wrap"><canvas id="pg-zones" role="img" aria-label="Pulssoner">Soner.</canvas></div></div>`;
+  setTimeout(()=>{
+    if(vo2s.some(v=>v)){
+      progCharts.push(new Chart(document.getElementById('pg-vo2'),{type:'line',data:{labels,datasets:[{label:'VO2maks',data:vo2s,borderColor:'#7F77DD',borderWidth:2,pointRadius:4,tension:0.3,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:tck},y:{min:20,ticks:tck,grid:grd}}}}));
+    }
+    progCharts.push(new Chart(document.getElementById('pg-hr'),{type:'line',data:{labels,datasets:[{label:'Maks',data:maxHRs,borderColor:'#E24B4A',borderWidth:2,pointRadius:4,tension:0.3},{label:'Snitt',data:avgHRs,borderColor:'#378ADD',borderWidth:2,pointRadius:4,tension:0.3,borderDash:[4,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:tck},y:{min:80,max:210,ticks:tck,grid:grd}}}}));
+    progCharts.push(new Chart(document.getElementById('pg-spd'),{type:'line',data:{labels,datasets:[{label:'Intensiv',data:wS,borderColor:'#D85A30',borderWidth:2,pointRadius:4,tension:0.3},{label:'Hvile',data:rS,borderColor:'#1D9E75',borderWidth:2,pointRadius:4,tension:0.3,borderDash:[4,3]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:tck},y:{min:0,ticks:tck,grid:grd}}}}));
+    progCharts.push(new Chart(document.getElementById('pg-zones'),{type:'bar',data:{labels,datasets:ZONES.map((z,i)=>({label:z.name,data:sessions.map(s=>s.zonePcts[i]),backgroundColor:z.color,stack:'z'}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:tck},y:{stacked:true,max:100,ticks:{...tck,callback:v=>v+'%'},grid:grd}}}}));
+  },150);
+}
+
+// ── Tab switching ──────────────────────────────────────────
+function sw(name){
+  ['train','profile','history','progress'].forEach(n=>{
+    document.getElementById('tab-'+n).classList.toggle('active',n===name);
+    document.getElementById('view-'+n).classList.toggle('active',n===name);
+  });
+  if(name==='profile'){fillProfile();renderVO2Preview();}
+  if(name==='history')renderHistory();
+  if(name==='progress')renderProgress();
+}
+
+// ── PWA Install ────────────────────────────────────────────
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').style.display='flex';
+});
+document.getElementById('installBtn').addEventListener('click',async()=>{
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  const r=await deferredPrompt.userChoice;
+  if(r.outcome==='accepted')document.getElementById('install-banner').style.display='none';
+  deferredPrompt=null;
+});
+
+// ── Service Worker ─────────────────────────────────────────
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ── Init ───────────────────────────────────────────────────
+updateTimer();updateDots();fillProfile();renderVO2Preview();
+</script>
+</body>
+</html>
