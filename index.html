@@ -328,6 +328,10 @@ body { display: flex; flex-direction: column; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3,17 9,11 13,15 21,7"/><polyline points="14,7 21,7 21,14"/></svg>
     Progresjon
   </button>
+  <button class="tab" onclick="sw('settings')" id="tab-settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Data
+  </button>
 </div>
 
 <!-- TRAIN -->
@@ -408,6 +412,60 @@ body { display: flex; flex-direction: column; }
   <div id="progressView">
     <div class="empty-state">Fullfør minst én økt<br>for å se progresjon.</div>
   </div>
+</div>
+
+<!-- SETTINGS / DATA -->
+<div id="view-settings" class="view">
+
+  <!-- Google Drive -->
+  <div class="card">
+    <div class="sec-label">Google Drive – skylagring</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Logg inn med Google for å lagre treningsdataen din i Drive. Fungerer på alle enheter med samme Google-konto.</p>
+    <div id="gdrive-status" style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div class="ble-dot" id="gdriveDot"></div>
+      <span style="font-size:13px;color:var(--text2)" id="gdriveStatusText">Ikke tilkoblet</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="gdriveLoginBtn" onclick="gdriveLogin()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Logg inn med Google
+      </button>
+      <button class="btn" id="gdriveLogoutBtn" onclick="gdriveLogout()" style="display:none">Logg ut</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" id="gdriveSyncBtn" onclick="syncToGdrive()" disabled style="font-size:13px">
+        ↑ Last opp til Drive
+      </button>
+      <button class="btn" id="gdriveLoadBtn" onclick="loadFromGdrive()" disabled style="font-size:13px">
+        ↓ Last ned fra Drive
+      </button>
+    </div>
+    <div id="gdriveSyncStatus" style="font-size:12px;color:var(--text3);margin-top:8px;min-height:18px"></div>
+  </div>
+
+  <!-- Export / Import -->
+  <div class="card">
+    <div class="sec-label">Eksport / Import</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Last ned all treningsdata som en JSON-fil, eller importer en tidligere sikkerhetskopi.</p>
+    <div class="btn-row" style="margin-bottom:8px">
+      <button class="btn primary" onclick="exportData()">
+        ↓ Eksporter JSON
+      </button>
+      <button class="btn" onclick="document.getElementById('importFile').click()">
+        ↑ Importer JSON
+      </button>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <div id="importStatus" style="font-size:12px;color:var(--text3);min-height:18px"></div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="card" style="border-color:rgba(226,75,74,0.2)">
+    <div class="sec-label" style="color:#E24B4A">Slett all data</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Sletter all treningshistorikk og profil fra denne enheten. Kan ikke angres.</p>
+    <button class="btn danger" onclick="deleteAllData()">✕ Slett alt</button>
+  </div>
+
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -800,13 +858,205 @@ function renderProgress(){
 
 // ── Tab switching ──────────────────────────────────────────
 function sw(name){
-  ['train','profile','history','progress'].forEach(n=>{
+  ['train','profile','history','progress','settings'].forEach(n=>{
     document.getElementById('tab-'+n).classList.toggle('active',n===name);
     document.getElementById('view-'+n).classList.toggle('active',n===name);
   });
   if(name==='profile'){fillProfile();renderVO2Preview();}
   if(name==='history')renderHistory();
   if(name==='progress')renderProgress();
+  if(name==='settings')renderSettingsStatus();
+}
+
+// ── Export / Import ────────────────────────────────────────
+function exportData(){
+  const data={
+    sessions:loadSessions(),
+    profile:loadProfile(),
+    exportedAt:new Date().toISOString(),
+    version:1
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='4x4-treningsdata-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      const st=document.getElementById('importStatus');
+      if(!data.sessions||!Array.isArray(data.sessions)){
+        st.style.color='#F09595';st.textContent='Ugyldig fil – fant ingen treningsdata.';return;
+      }
+      // Merge: add sessions not already present by id
+      const existing=loadSessions();
+      const existingIds=new Set(existing.map(s=>s.id));
+      const newSessions=[...existing,...data.sessions.filter(s=>!existingIds.has(s.id))];
+      newSessions.sort((a,b)=>a.id-b.id);
+      saveSessions(newSessions);
+      if(data.profile)localStorage.setItem('4x4-profile',JSON.stringify(data.profile));
+      st.style.color='#97C459';
+      st.textContent=`✓ Importert ${data.sessions.length} økt(er). Totalt: ${newSessions.length}.`;
+      document.getElementById('importFile').value='';
+    }catch(err){
+      document.getElementById('importStatus').style.color='#F09595';
+      document.getElementById('importStatus').textContent='Feil ved lesing av fil: '+err.message;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function deleteAllData(){
+  if(!confirm('Er du sikker? All treningshistorikk og profil slettes permanent.'))return;
+  localStorage.removeItem('4x4-sessions');
+  localStorage.removeItem('4x4-profile');
+  renderSettingsStatus();
+  alert('All data er slettet.');
+}
+
+// ── Google Drive ───────────────────────────────────────────
+const GDRIVE_CLIENT_ID=''; // User must fill in their own OAuth client ID
+const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata';
+const GDRIVE_FILE='4x4-treningsdata.json';
+let gdriveToken=null;
+
+function renderSettingsStatus(){
+  const dot=document.getElementById('gdriveDot');
+  const txt=document.getElementById('gdriveStatusText');
+  const loginBtn=document.getElementById('gdriveLoginBtn');
+  const logoutBtn=document.getElementById('gdriveLogoutBtn');
+  const syncBtn=document.getElementById('gdriveSyncBtn');
+  const loadBtn=document.getElementById('gdriveLoadBtn');
+  const sessions=loadSessions();
+  document.getElementById('importStatus').textContent='';
+  document.getElementById('gdriveSyncStatus').textContent=
+    sessions.length?`${sessions.length} økt(er) lagret lokalt`:'Ingen lokale økter';
+
+  if(gdriveToken){
+    dot.className='ble-dot on';
+    txt.textContent='Tilkoblet Google Drive';
+    loginBtn.style.display='none';
+    logoutBtn.style.display='';
+    syncBtn.disabled=false;
+    loadBtn.disabled=false;
+  }else{
+    dot.className='ble-dot';
+    txt.textContent='Ikke tilkoblet';
+    loginBtn.style.display='';
+    logoutBtn.style.display='none';
+    syncBtn.disabled=true;
+    loadBtn.disabled=true;
+    // Check if client ID is configured
+    if(!GDRIVE_CLIENT_ID){
+      loginBtn.disabled=true;
+      loginBtn.title='Krever Google OAuth Client ID – se instruksjoner';
+      document.getElementById('gdriveSyncStatus').innerHTML=
+        '<span style="color:#FAC775">⚠ Google Drive krever eget OAuth Client ID. Se README.md for oppsett, eller bruk eksport/import nedenfor.</span>';
+    }
+  }
+}
+
+function gdriveLogin(){
+  if(!GDRIVE_CLIENT_ID){alert('Google Drive-integrasjon krever et OAuth 2.0 Client ID fra Google Cloud Console.\n\nSe README.md i appen for steg-for-steg instruksjoner.\n\nBruk Eksport/Import som alternativ – det fungerer uten oppsett.');return;}
+  const params=new URLSearchParams({
+    client_id:GDRIVE_CLIENT_ID,
+    redirect_uri:window.location.origin+window.location.pathname,
+    response_type:'token',
+    scope:GDRIVE_SCOPE,
+    prompt:'select_account'
+  });
+  window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params;
+}
+
+function gdriveLogout(){
+  gdriveToken=null;
+  sessionStorage.removeItem('gdrive_token');
+  renderSettingsStatus();
+}
+
+// Check for OAuth token in URL hash (redirect back from Google)
+function checkGdriveRedirect(){
+  const hash=window.location.hash;
+  if(hash.includes('access_token')){
+    const params=new URLSearchParams(hash.slice(1));
+    const token=params.get('access_token');
+    if(token){
+      gdriveToken=token;
+      sessionStorage.setItem('gdrive_token',token);
+      history.replaceState(null,'',window.location.pathname);
+      renderSettingsStatus();
+      document.getElementById('gdriveSyncStatus').style.color='#97C459';
+      document.getElementById('gdriveSyncStatus').textContent='✓ Logget inn! Trykk "Last opp" for å synkronisere.';
+    }
+  } else {
+    const saved=sessionStorage.getItem('gdrive_token');
+    if(saved)gdriveToken=saved;
+  }
+}
+
+async function syncToGdrive(){
+  if(!gdriveToken)return;
+  const st=document.getElementById('gdriveSyncStatus');
+  st.style.color='var(--text3)';st.textContent='Laster opp...';
+  try{
+    const data=JSON.stringify({sessions:loadSessions(),profile:loadProfile(),syncedAt:new Date().toISOString()});
+    // Find existing file
+    const search=await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${GDRIVE_FILE}'&fields=files(id,name)`,
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    const found=await search.json();
+    const fileId=found.files&&found.files.length?found.files[0].id:null;
+    const method=fileId?'PATCH':'POST';
+    const url=fileId
+      ?`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`
+      :`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+
+    let res;
+    if(!fileId){
+      const meta=JSON.stringify({name:GDRIVE_FILE,parents:['appDataFolder']});
+      const form=new FormData();
+      form.append('metadata',new Blob([meta],{type:'application/json'}));
+      form.append('file',new Blob([data],{type:'application/json'}));
+      res=await fetch(url,{method:'POST',headers:{Authorization:'Bearer '+gdriveToken},body:form});
+    } else {
+      res=await fetch(url,{method:'PATCH',headers:{Authorization:'Bearer '+gdriveToken,'Content-Type':'application/json'},body:data});
+    }
+    if(res.ok){st.style.color='#97C459';st.textContent='✓ Lastet opp til Google Drive – '+new Date().toLocaleTimeString('nb-NO');}
+    else{st.style.color='#F09595';st.textContent='Feil ved opplasting: '+res.status;}
+  }catch(err){st.style.color='#F09595';st.textContent='Feil: '+err.message;}
+}
+
+async function loadFromGdrive(){
+  if(!gdriveToken)return;
+  const st=document.getElementById('gdriveSyncStatus');
+  st.style.color='var(--text3)';st.textContent='Henter fra Drive...';
+  try{
+    const search=await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${GDRIVE_FILE}'&fields=files(id,name)`,
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    const found=await search.json();
+    if(!found.files||!found.files.length){st.style.color='#FAC775';st.textContent='Ingen backup funnet i Drive.';return;}
+    const fileId=found.files[0].id;
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      {headers:{Authorization:'Bearer '+gdriveToken}});
+    const data=await res.json();
+    if(data.sessions){
+      const existing=loadSessions();
+      const existingIds=new Set(existing.map(s=>s.id));
+      const merged=[...existing,...data.sessions.filter(s=>!existingIds.has(s.id))];
+      merged.sort((a,b)=>a.id-b.id);
+      saveSessions(merged);
+      if(data.profile)localStorage.setItem('4x4-profile',JSON.stringify(data.profile));
+      st.style.color='#97C459';
+      st.textContent=`✓ Hentet ${data.sessions.length} økt(er) fra Drive. Totalt lokalt: ${merged.length}.`;
+    }
+  }catch(err){st.style.color='#F09595';st.textContent='Feil: '+err.message;}
 }
 
 // ── PWA Install ────────────────────────────────────────────
@@ -829,7 +1079,7 @@ if('serviceWorker' in navigator){
 }
 
 // ── Init ───────────────────────────────────────────────────
-updateTimer();updateDots();fillProfile();renderVO2Preview();
+updateTimer();updateDots();fillProfile();renderVO2Preview();checkGdriveRedirect();
 </script>
 </body>
 </html>
