@@ -302,6 +302,71 @@ body { display: flex; flex-direction: column; }
   font-size: 13px; color: var(--rest);
   margin-top: 8px; display: none;
 }
+
+/* Speed stepper */
+.speed-stepper { display: flex; align-items: center; gap: 0; border: 1px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden; }
+.speed-stepper button {
+  flex: 0; width: 44px; height: 52px; border: none; border-radius: 0;
+  background: var(--bg3); color: var(--text); font-size: 22px; font-weight: 400;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .15s; font-family: var(--font);
+}
+.speed-stepper button:active { background: var(--border2); }
+.speed-stepper .spd-val {
+  flex: 1; text-align: center; font-size: 22px; font-weight: 600;
+  font-family: var(--mono); color: var(--text); background: var(--bg2);
+  padding: 0 4px; line-height: 52px; user-select: none;
+}
+.speed-stepper .spd-sep { width: 1px; background: var(--border); height: 52px; flex-shrink: 0; }
+
+/* Live adjust panel */
+.live-adjust {
+  background: var(--bg3); border-radius: var(--radius-sm);
+  padding: 12px 14px; margin-bottom: 10px; display: none;
+}
+.live-adjust.visible { display: block; }
+.live-adjust-label { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+.live-adjust-row { display: flex; align-items: center; gap: 10px; }
+.live-adjust-name { font-size: 13px; color: var(--text2); width: 60px; }
+.live-adjust-val { font-size: 18px; font-weight: 600; font-family: var(--mono); color: var(--text); min-width: 48px; text-align: center; }
+.live-adj-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border2);
+  background: var(--bg2); color: var(--text); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-family: var(--font); transition: background .15s;
+}
+.live-adj-btn:active { background: var(--border2); }
+.live-adj-log { font-size: 11px; color: var(--text3); margin-top: 6px; font-style: italic; }
+
+/* Theme toggle */
+.theme-toggle-row { display: flex; align-items: center; gap: 12px; }
+.toggle-label { font-size: 14px; color: var(--text2); flex: 1; }
+.toggle-switch {
+  position: relative; width: 48px; height: 28px; cursor: pointer;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0; background: var(--bg3);
+  border: 1px solid var(--border2); border-radius: 14px; transition: background .2s;
+}
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+  background: var(--text3); border-radius: 50%; transition: transform .2s, background .2s;
+}
+.toggle-switch input:checked ~ .toggle-track { background: var(--accent); border-color: var(--accent); }
+.toggle-switch input:checked ~ .toggle-thumb { transform: translateX(20px); background: white; }
+
+/* Light theme overrides */
+body.light {
+  --bg: #f5f5f0;
+  --bg2: #ffffff;
+  --bg3: #ededea;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.15);
+  --text: #1a1a2e;
+  --text2: #555570;
+  --text3: #9999b8;
+}
 </style>
 </head>
 <body>
@@ -340,15 +405,37 @@ body { display: flex; flex-direction: column; }
     <div class="sec-label">Pulsmåler</div>
     <div class="ble-row">
       <div class="ble-dot" id="bleDot"></div>
-      <span class="ble-status" id="bleStatus">Ikke tilkoblet – simulerer puls</span>
+      <span class="ble-status" id="bleStatus">Ikke tilkoblet</span>
       <button class="ble-btn" id="bleBtn">Koble til</button>
     </div>
   </div>
   <div class="card">
     <div class="sec-label">Hastighetsinnstillinger</div>
-    <div class="speed-row">
-      <div class="ig"><label>Intensiv (4 min)</label><input type="number" id="workSpeed" value="12.0" min="1" max="25" step="0.5" inputmode="decimal"><div class="unit">km/t</div></div>
-      <div class="ig"><label>Hvile (3 min)</label><input type="number" id="restSpeed" value="6.0" min="1" max="15" step="0.5" inputmode="decimal"><div class="unit">km/t</div></div>
+    <div class="speed-row" style="margin-bottom:0">
+      <div class="ig">
+        <label>Intensiv (4 min)</label>
+        <div class="speed-stepper">
+          <button onclick="adjustSpeed('work',-0.5)" aria-label="Senk intensiv hastighet">−</button>
+          <div class="spd-sep"></div>
+          <div class="spd-val" id="workSpeedVal">12.0</div>
+          <div class="spd-sep"></div>
+          <button onclick="adjustSpeed('work',0.5)" aria-label="Øk intensiv hastighet">+</button>
+        </div>
+        <div class="unit">km/t</div>
+        <input type="hidden" id="workSpeed" value="12.0">
+      </div>
+      <div class="ig">
+        <label>Hvile (3 min)</label>
+        <div class="speed-stepper">
+          <button onclick="adjustSpeed('rest',-0.5)" aria-label="Senk hvilehastighet">−</button>
+          <div class="spd-sep"></div>
+          <div class="spd-val" id="restSpeedVal">6.0</div>
+          <div class="spd-sep"></div>
+          <button onclick="adjustSpeed('rest',0.5)" aria-label="Øk hvilehastighet">+</button>
+        </div>
+        <div class="unit">km/t</div>
+        <input type="hidden" id="restSpeed" value="6.0">
+      </div>
     </div>
   </div>
   <div class="card">
@@ -362,6 +449,27 @@ body { display: flex; flex-direction: column; }
       <div class="dot" id="dot1">1</div><div class="dot" id="dot2">2</div>
       <div class="dot" id="dot3">3</div><div class="dot" id="dot4">4</div>
     </div>
+
+    <!-- Live speed adjust – visible during workout -->
+    <div class="live-adjust" id="liveAdjust">
+      <div class="live-adjust-label">Juster hastighet underveis</div>
+      <div class="live-adjust-row" style="margin-bottom:8px">
+        <span class="live-adjust-name" style="color:#f0997b">Intensiv</span>
+        <button class="live-adj-btn" onclick="liveAdjust('work',-0.5)" aria-label="Senk intensiv">−</button>
+        <span class="live-adjust-val" id="liveWorkVal">12.0</span>
+        <button class="live-adj-btn" onclick="liveAdjust('work',0.5)" aria-label="Øk intensiv">+</button>
+        <span style="font-size:11px;color:var(--text3)">km/t</span>
+      </div>
+      <div class="live-adjust-row">
+        <span class="live-adjust-name" style="color:#5DCAA5">Hvile</span>
+        <button class="live-adj-btn" onclick="liveAdjust('rest',-0.5)" aria-label="Senk hvile">−</button>
+        <span class="live-adjust-val" id="liveRestVal">6.0</span>
+        <button class="live-adj-btn" onclick="liveAdjust('rest',0.5)" aria-label="Øk hvile">+</button>
+        <span style="font-size:11px;color:var(--text3)">km/t</span>
+      </div>
+      <div class="live-adj-log" id="liveAdjLog"></div>
+    </div>
+
     <div class="metrics-grid">
       <div class="metric"><div class="metric-label">Puls</div><div class="metric-value" id="hrVal">--</div><div class="metric-unit">bpm</div></div>
       <div class="metric"><div class="metric-label">Hastighet</div><div class="metric-value" id="speedVal">--</div><div class="metric-unit">km/t</div></div>
@@ -464,6 +572,19 @@ body { display: flex; flex-direction: column; }
     <div class="sec-label" style="color:#E24B4A">Slett all data</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Sletter all treningshistorikk og profil fra denne enheten. Kan ikke angres.</p>
     <button class="btn danger" onclick="deleteAllData()">✕ Slett alt</button>
+  </div>
+
+  <!-- Theme -->
+  <div class="card">
+    <div class="sec-label">Utseende</div>
+    <div class="theme-toggle-row">
+      <span class="toggle-label" id="themeLabel">Mørkt tema</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
   </div>
 
 </div>
@@ -658,11 +779,11 @@ function calcZones(samples){
 function finish(){
   state='done';clearInterval(ticker);
   saveSession();updatePhaseUI();updateDots();
+  showLiveAdjust(false);
   document.getElementById('startBtn').textContent='▶ Start ny';
   document.getElementById('startBtn').disabled=false;
   document.getElementById('resetBtn').disabled=false;
   document.getElementById('timerDisplay').textContent='0:00';
-  if(!bleChar)stopSim();
   if('vibrate' in navigator)navigator.vibrate([300,200,300,200,500]);
 }
 
@@ -683,7 +804,8 @@ function saveSession(){
     date:new Date().toLocaleDateString('nb-NO',{day:'numeric',month:'short',year:'numeric'}),
     time:new Date().toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'}),
     avgHR,maxHR,avgWorkSpeed:avgWS,avgRestSpeed:avgRS,zonePcts:zp,vo2,
-    hrTimeline:[...hrTimeline]
+    hrTimeline:[...hrTimeline],
+    speedAdjustLog:[...speedAdjustLog]
   };
   const sessions=loadSessions();sessions.push(s);saveSessions(sessions);
 }
@@ -704,11 +826,12 @@ function tick(){
 document.getElementById('startBtn').addEventListener('click',()=>{
   if(state==='done'||state==='idle'){
     state='running';phase='work';intIdx=0;timeLeft=WORK_TIME;totalTime=WORK_TIME;
-    pulseSamples=[];phaseLog=[];hrTimeline=[];
+    pulseSamples=[];phaseLog=[];hrTimeline=[];speedAdjustLog=[];
     document.getElementById('startBtn').textContent='⏸ Pause';
     document.getElementById('resetBtn').disabled=false;
     updatePhaseUI();updateDots();updateTimer();
-    ticker=setInterval(tick,1000);startSim();
+    showLiveAdjust(true);
+    ticker=setInterval(tick,1000);
   }else if(state==='running'){
     state='paused';clearInterval(ticker);
     document.getElementById('startBtn').textContent='▶ Fortsett';
@@ -719,24 +842,16 @@ document.getElementById('startBtn').addEventListener('click',()=>{
 });
 document.getElementById('resetBtn').addEventListener('click',()=>{
   state='idle';clearInterval(ticker);phase='work';intIdx=0;timeLeft=WORK_TIME;totalTime=WORK_TIME;
-  pulseSamples=[];phaseLog=[];hrTimeline=[];
+  pulseSamples=[];phaseLog=[];hrTimeline=[];speedAdjustLog=[];
   updatePhaseUI();updateDots();updateTimer();
+  showLiveAdjust(false);
   document.getElementById('startBtn').textContent='▶ Start';
-  document.getElementById('resetBtn').disabled=true;stopSim();
+  document.getElementById('resetBtn').disabled=true;
+  updateHR(null);
 });
 
 // ── BLE ────────────────────────────────────────────────────
-function startSim(){
-  if(bleChar)return;
-  let base=70;
-  simInt=setInterval(()=>{
-    if(state!=='running')return;
-    const t=phase==='work'?165:110;
-    base+=(t-base)*0.05+(Math.random()-.5)*3;
-    updateHR(Math.round(Math.max(50,Math.min(200,base))));
-  },1000);
-}
-function stopSim(){clearInterval(simInt);updateHR(null);}
+function stopSim(){updateHR(null);}
 
 async function connectBLE(){
   const btn=document.getElementById('bleBtn'),dot=document.getElementById('bleDot'),st=document.getElementById('bleStatus');
@@ -753,8 +868,8 @@ async function connectBLE(){
       const v=e.target.value,f=v.getUint8(0);
       updateHR(f&1?v.getUint16(1,true):v.getUint8(1));
     });
-    dot.className='ble-dot on';st.textContent=bleDevice.name+' tilkoblet';btn.textContent='Koble fra';btn.disabled=false;stopSim();
-    bleDevice.addEventListener('gattserverdisconnected',()=>{dot.className='ble-dot';st.textContent='Frakoblet';btn.textContent='Koble til';bleChar=null;});
+    dot.className='ble-dot on';st.textContent=bleDevice.name+' tilkoblet';btn.textContent='Koble fra';btn.disabled=false;
+    bleDevice.addEventListener('gattserverdisconnected',()=>{dot.className='ble-dot';st.textContent='Frakoblet';btn.textContent='Koble til';bleChar=null;updateHR(null);});
   }catch(err){
     dot.className='ble-dot';
     st.textContent=err.name==='NotFoundError'?'Ingen enhet valgt':'Feil: '+err.message;
@@ -764,6 +879,53 @@ async function connectBLE(){
 document.getElementById('bleBtn').addEventListener('click',()=>{
   if(bleDevice&&bleDevice.gatt.connected)bleDevice.gatt.disconnect();else connectBLE();
 });
+
+// ── Speed steppers ─────────────────────────────────────────
+function adjustSpeed(type, delta){
+  const hiddenId = type==='work'?'workSpeed':'restSpeed';
+  const displayId = type==='work'?'workSpeedVal':'restSpeedVal';
+  const liveId = type==='work'?'liveWorkVal':'liveRestVal';
+  const min = type==='work'?1:1;
+  const max = type==='work'?30:20;
+  let val = parseFloat(document.getElementById(hiddenId).value)||( type==='work'?12:6);
+  val = Math.round((val + delta)*10)/10;
+  val = Math.max(min, Math.min(max, val));
+  document.getElementById(hiddenId).value = val.toFixed(1);
+  document.getElementById(displayId).textContent = val.toFixed(1);
+  document.getElementById(liveId).textContent = val.toFixed(1);
+  if(state==='running'||state==='paused') updatePhaseUI();
+}
+
+// ── Live speed adjustment during workout ───────────────────
+let speedAdjustLog = []; // {t, type, from, to}
+
+function liveAdjust(type, delta){
+  if(state!=='running'&&state!=='paused')return;
+  const hiddenId = type==='work'?'workSpeed':'restSpeed';
+  const displayId = type==='work'?'workSpeedVal':'restSpeedVal';
+  const liveId = type==='work'?'liveWorkVal':'liveRestVal';
+  const max = type==='work'?30:20;
+  const from = parseFloat(document.getElementById(hiddenId).value);
+  let val = Math.round((from + delta)*10)/10;
+  val = Math.max(1, Math.min(max, val));
+  document.getElementById(hiddenId).value = val.toFixed(1);
+  document.getElementById(displayId).textContent = val.toFixed(1);
+  document.getElementById(liveId).textContent = val.toFixed(1);
+  speedAdjustLog.push({t:fmt(WORK_TIME+REST_TIME*(intIdx>0?intIdx-1:0)-(timeLeft)),phase,type,from:from.toFixed(1),to:val.toFixed(1)});
+  const logEl=document.getElementById('liveAdjLog');
+  const typeName=type==='work'?'Intensiv':'Hvile';
+  logEl.textContent=`Sist justert: ${typeName} ${from.toFixed(1)} → ${val.toFixed(1)} km/t`;
+  updatePhaseUI();
+  if('vibrate' in navigator)navigator.vibrate(40);
+}
+
+function showLiveAdjust(show){
+  document.getElementById('liveAdjust').classList.toggle('visible', show);
+  if(show){
+    document.getElementById('liveWorkVal').textContent=parseFloat(document.getElementById('workSpeed').value).toFixed(1);
+    document.getElementById('liveRestVal').textContent=parseFloat(document.getElementById('restSpeed').value).toFixed(1);
+  }
+}
 
 // ── Render helpers ─────────────────────────────────────────
 function zoneBarHTML(zp){
@@ -783,7 +945,11 @@ function renderHistory(){
   [...sessions].reverse().forEach(s=>{
     const div=document.createElement('div');div.className='card';
     const vo2sec=s.vo2?`<div style="margin-bottom:10px"><div class="sec-label" style="margin-bottom:8px">VO2maks</div>${vo2HTML(s.vo2,p)}</div>`:'';
-    div.innerHTML=`
+    const adjLog=s.speedAdjustLog&&s.speedAdjustLog.length?`
+      <div class="sec-label" style="margin-bottom:6px;margin-top:10px">Hastingsjusteringer underveis</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.9">
+        ${s.speedAdjustLog.map(a=>`<span style="display:inline-block;background:var(--bg3);border-radius:6px;padding:2px 8px;margin:2px;color:${a.type==='work'?'#f0997b':'#5DCAA5'}">${a.type==='work'?'Intensiv':'Hvile'}: ${a.from}→${a.to} km/t</span>`).join('')}
+      </div>`:'';    div.innerHTML=`
       <div class="sess-hdr">
         <div>
           <div style="font-size:15px;font-weight:600;color:var(--text)">${s.date} kl. ${s.time}</div>
@@ -799,6 +965,7 @@ function renderHistory(){
       </div>
       <div class="sec-label" style="margin-bottom:6px">Pulssoner</div>
       ${zoneBarHTML(s.zonePcts)}
+      ${adjLog}
       ${vo2sec}
       ${s.hrTimeline&&s.hrTimeline.length?`<div class="chart-wrap"><canvas id="hrc-${s.id}" role="img" aria-label="Pulskurve">Puls.</canvas></div>`:''}`;
     c.appendChild(div);
@@ -1078,8 +1245,24 @@ if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 
+// ── Theme ──────────────────────────────────────────────────
+function toggleTheme(){
+  const light=document.getElementById('themeToggle').checked;
+  document.body.classList.toggle('light', light);
+  document.getElementById('themeLabel').textContent = light ? 'Lyst tema' : 'Mørkt tema';
+  localStorage.setItem('4x4-theme', light?'light':'dark');
+}
+function initTheme(){
+  const saved=localStorage.getItem('4x4-theme');
+  const light = saved==='light';
+  document.body.classList.toggle('light', light);
+  const tog=document.getElementById('themeToggle');
+  if(tog) tog.checked=light;
+  document.getElementById('themeLabel').textContent = light ? 'Lyst tema' : 'Mørkt tema';
+}
+
 // ── Init ───────────────────────────────────────────────────
-updateTimer();updateDots();fillProfile();renderVO2Preview();checkGdriveRedirect();
+updateTimer();updateDots();fillProfile();renderVO2Preview();checkGdriveRedirect();initTheme();
 </script>
 </body>
 </html>
