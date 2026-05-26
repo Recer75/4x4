@@ -410,10 +410,10 @@ body.light {
     </div>
   </div>
   <div class="card">
-    <div class="sec-label">Hastighets- og stigningsinnstillinger</div>
-    <div class="speed-row" style="margin-bottom:12px">
+    <div class="sec-label">Hastighet og stigning</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end">
       <div class="ig">
-        <label>Intensiv (4 min)</label>
+        <label>Intensiv</label>
         <div class="speed-stepper">
           <button onclick="adjustSpeed('work',-0.5)" aria-label="Senk intensiv hastighet">−</button>
           <div class="spd-sep"></div>
@@ -425,7 +425,7 @@ body.light {
         <input type="hidden" id="workSpeed" value="12.0">
       </div>
       <div class="ig">
-        <label>Hvile (3 min)</label>
+        <label>Hvile</label>
         <div class="speed-stepper">
           <button onclick="adjustSpeed('rest',-0.5)" aria-label="Senk hvilehastighet">−</button>
           <div class="spd-sep"></div>
@@ -436,20 +436,18 @@ body.light {
         <div class="unit">km/t</div>
         <input type="hidden" id="restSpeed" value="6.0">
       </div>
-    </div>
-    <div style="border-top:1px solid var(--border);padding-top:12px">
-      <div style="font-size:12px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Stigning (samme for hele økten)</div>
-      <div style="display:flex;align-items:center;gap:0;max-width:220px">
-        <div class="speed-stepper" style="flex:1">
+      <div class="ig">
+        <label>Stigning</label>
+        <div class="speed-stepper">
           <button onclick="adjustIncline(-0.5)" aria-label="Senk stigning">−</button>
           <div class="spd-sep"></div>
           <div class="spd-val" id="inclineVal">2.0</div>
           <div class="spd-sep"></div>
           <button onclick="adjustIncline(0.5)" aria-label="Øk stigning">+</button>
         </div>
-        <span style="font-size:13px;color:var(--text3);margin-left:10px">%</span>
+        <div class="unit">%</div>
+        <input type="hidden" id="inclineInput" value="2.0">
       </div>
-      <input type="hidden" id="inclineInput" value="2.0">
     </div>
   </div>
   <div class="card">
@@ -466,27 +464,35 @@ body.light {
 
     <!-- Live speed adjust – visible during workout -->
     <div class="live-adjust" id="liveAdjust">
-      <div class="live-adjust-label">Juster hastighet underveis</div>
-      <div class="live-adjust-row" style="margin-bottom:8px">
-        <span class="live-adjust-name" style="color:#f0997b">Intensiv</span>
-        <button class="live-adj-btn" onclick="liveAdjust('work',-0.5)" aria-label="Senk intensiv">−</button>
-        <span class="live-adjust-val" id="liveWorkVal">12.0</span>
-        <button class="live-adj-btn" onclick="liveAdjust('work',0.5)" aria-label="Øk intensiv">+</button>
-        <span style="font-size:11px;color:var(--text3)">km/t</span>
-      </div>
-      <div class="live-adjust-row" style="margin-bottom:8px">
-        <span class="live-adjust-name" style="color:#5DCAA5">Hvile</span>
-        <button class="live-adj-btn" onclick="liveAdjust('rest',-0.5)" aria-label="Senk hvile">−</button>
-        <span class="live-adjust-val" id="liveRestVal">6.0</span>
-        <button class="live-adj-btn" onclick="liveAdjust('rest',0.5)" aria-label="Øk hvile">+</button>
-        <span style="font-size:11px;color:var(--text3)">km/t</span>
-      </div>
-      <div class="live-adjust-row">
-        <span class="live-adjust-name" style="color:var(--text2)">Stigning</span>
-        <button class="live-adj-btn" onclick="liveAdjustIncline(-0.5)" aria-label="Senk stigning">−</button>
-        <span class="live-adjust-val" id="liveInclineVal">2.0</span>
-        <button class="live-adj-btn" onclick="liveAdjustIncline(0.5)" aria-label="Øk stigning">+</button>
-        <span style="font-size:11px;color:var(--text3)">%</span>
+      <div class="live-adjust-label">Juster underveis</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="text-align:center">
+          <div style="font-size:11px;color:#f0997b;font-weight:600;margin-bottom:6px">Intensiv</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+            <button class="live-adj-btn" onclick="liveAdjust('work',-0.5)" aria-label="Senk intensiv">−</button>
+            <span class="live-adjust-val" id="liveWorkVal">12.0</span>
+            <button class="live-adj-btn" onclick="liveAdjust('work',0.5)" aria-label="Øk intensiv">+</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">km/t</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:#5DCAA5;font-weight:600;margin-bottom:6px">Hvile</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+            <button class="live-adj-btn" onclick="liveAdjust('rest',-0.5)" aria-label="Senk hvile">−</button>
+            <span class="live-adjust-val" id="liveRestVal">6.0</span>
+            <button class="live-adj-btn" onclick="liveAdjust('rest',0.5)" aria-label="Øk hvile">+</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">km/t</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px">Stigning</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px">
+            <button class="live-adj-btn" onclick="liveAdjustIncline(-0.5)" aria-label="Senk stigning">−</button>
+            <span class="live-adjust-val" id="liveInclineVal">2.0</span>
+            <button class="live-adj-btn" onclick="liveAdjustIncline(0.5)" aria-label="Øk stigning">+</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">%</div>
+        </div>
       </div>
       <div class="live-adj-log" id="liveAdjLog"></div>
     </div>
