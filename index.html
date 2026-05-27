@@ -303,7 +303,82 @@ body { display: flex; flex-direction: column; }
   margin-top: 8px; display: none;
 }
 
-/* Speed stepper */
+/* List-style stepper rows (alternativ B) */
+.list-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.list-label {
+  font-size: 15px;
+  font-weight: 600;
+  width: 72px;
+  flex-shrink: 0;
+}
+.list-unit {
+  font-size: 12px;
+  color: var(--text3);
+  width: 32px;
+  flex-shrink: 0;
+}
+.list-stepper {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 0;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.list-stepper button {
+  width: 56px;
+  height: 52px;
+  border: none;
+  background: var(--bg3);
+  color: var(--text);
+  font-size: 26px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.list-stepper button:active { background: var(--border2); }
+.list-stepper span {
+  min-width: 72px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--text);
+  background: var(--bg2);
+  padding: 0 4px;
+  line-height: 52px;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  user-select: none;
+}
+
+/* Live adjust list rows */
+.live-adjust .list-row {
+  border-bottom-color: rgba(255,255,255,0.06);
+}
+.live-adjust .list-stepper button {
+  width: 52px;
+  height: 48px;
+  font-size: 24px;
+}
+.live-adjust .list-stepper span {
+  min-width: 60px;
+  font-size: 22px;
+  line-height: 48px;
+}
+
+/* Speed stepper – kept for any remaining uses */
 .speed-stepper { display: flex; align-items: center; gap: 0; border: 1px solid var(--border2); border-radius: var(--radius-sm); overflow: hidden; }
 .speed-stepper button {
   flex: 0; width: 64px; height: 64px; border: none; border-radius: 0;
@@ -411,43 +486,35 @@ body.light {
   </div>
   <div class="card">
     <div class="sec-label">Hastighet og stigning</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end">
-      <div class="ig">
-        <label>Intensiv</label>
-        <div class="speed-stepper">
-          <button onclick="adjustSpeed('work',-0.5)" aria-label="Senk intensiv hastighet">−</button>
-          <div class="spd-sep"></div>
-          <div class="spd-val" id="workSpeedVal">12.0</div>
-          <div class="spd-sep"></div>
-          <button onclick="adjustSpeed('work',0.5)" aria-label="Øk intensiv hastighet">+</button>
-        </div>
-        <div class="unit">km/t</div>
-        <input type="hidden" id="workSpeed" value="12.0">
+    <div class="list-row">
+      <span class="list-label" style="color:#f0997b">Intensiv</span>
+      <span class="list-unit">km/t</span>
+      <div class="list-stepper">
+        <button onclick="adjustSpeed('work',-0.5)" aria-label="Senk intensiv">−</button>
+        <span id="workSpeedVal">12.0</span>
+        <button onclick="adjustSpeed('work',0.5)" aria-label="Øk intensiv">+</button>
       </div>
-      <div class="ig">
-        <label>Hvile</label>
-        <div class="speed-stepper">
-          <button onclick="adjustSpeed('rest',-0.5)" aria-label="Senk hvilehastighet">−</button>
-          <div class="spd-sep"></div>
-          <div class="spd-val" id="restSpeedVal">6.0</div>
-          <div class="spd-sep"></div>
-          <button onclick="adjustSpeed('rest',0.5)" aria-label="Øk hvilehastighet">+</button>
-        </div>
-        <div class="unit">km/t</div>
-        <input type="hidden" id="restSpeed" value="6.0">
+      <input type="hidden" id="workSpeed" value="12.0">
+    </div>
+    <div class="list-row">
+      <span class="list-label" style="color:#5DCAA5">Hvile</span>
+      <span class="list-unit">km/t</span>
+      <div class="list-stepper">
+        <button onclick="adjustSpeed('rest',-0.5)" aria-label="Senk hvile">−</button>
+        <span id="restSpeedVal">6.0</span>
+        <button onclick="adjustSpeed('rest',0.5)" aria-label="Øk hvile">+</button>
       </div>
-      <div class="ig">
-        <label>Stigning</label>
-        <div class="speed-stepper">
-          <button onclick="adjustIncline(-0.5)" aria-label="Senk stigning">−</button>
-          <div class="spd-sep"></div>
-          <div class="spd-val" id="inclineVal">2.0</div>
-          <div class="spd-sep"></div>
-          <button onclick="adjustIncline(0.5)" aria-label="Øk stigning">+</button>
-        </div>
-        <div class="unit">%</div>
-        <input type="hidden" id="inclineInput" value="2.0">
+      <input type="hidden" id="restSpeed" value="6.0">
+    </div>
+    <div class="list-row" style="border-bottom:none;padding-bottom:0">
+      <span class="list-label" style="color:var(--text2)">Stigning</span>
+      <span class="list-unit">%</span>
+      <div class="list-stepper">
+        <button onclick="adjustIncline(-0.5)" aria-label="Senk stigning">−</button>
+        <span id="inclineVal">2.0</span>
+        <button onclick="adjustIncline(0.5)" aria-label="Øk stigning">+</button>
       </div>
+      <input type="hidden" id="inclineInput" value="2.0">
     </div>
   </div>
   <div class="card">
@@ -465,33 +532,31 @@ body.light {
     <!-- Live speed adjust – visible during workout -->
     <div class="live-adjust" id="liveAdjust">
       <div class="live-adjust-label">Juster underveis</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div style="text-align:center">
-          <div style="font-size:11px;color:#f0997b;font-weight:600;margin-bottom:6px">Intensiv</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:6px">
-            <button class="live-adj-btn" onclick="liveAdjust('work',-0.5)" aria-label="Senk intensiv">−</button>
-            <span class="live-adjust-val" id="liveWorkVal">12.0</span>
-            <button class="live-adj-btn" onclick="liveAdjust('work',0.5)" aria-label="Øk intensiv">+</button>
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">km/t</div>
+      <div class="list-row">
+        <span class="list-label" style="color:#f0997b">Intensiv</span>
+        <span class="list-unit">km/t</span>
+        <div class="list-stepper">
+          <button onclick="liveAdjust('work',-0.5)" aria-label="Senk intensiv">−</button>
+          <span id="liveWorkVal">12.0</span>
+          <button onclick="liveAdjust('work',0.5)" aria-label="Øk intensiv">+</button>
         </div>
-        <div style="text-align:center">
-          <div style="font-size:11px;color:#5DCAA5;font-weight:600;margin-bottom:6px">Hvile</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:6px">
-            <button class="live-adj-btn" onclick="liveAdjust('rest',-0.5)" aria-label="Senk hvile">−</button>
-            <span class="live-adjust-val" id="liveRestVal">6.0</span>
-            <button class="live-adj-btn" onclick="liveAdjust('rest',0.5)" aria-label="Øk hvile">+</button>
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">km/t</div>
+      </div>
+      <div class="list-row">
+        <span class="list-label" style="color:#5DCAA5">Hvile</span>
+        <span class="list-unit">km/t</span>
+        <div class="list-stepper">
+          <button onclick="liveAdjust('rest',-0.5)" aria-label="Senk hvile">−</button>
+          <span id="liveRestVal">6.0</span>
+          <button onclick="liveAdjust('rest',0.5)" aria-label="Øk hvile">+</button>
         </div>
-        <div style="text-align:center">
-          <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px">Stigning</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:6px">
-            <button class="live-adj-btn" onclick="liveAdjustIncline(-0.5)" aria-label="Senk stigning">−</button>
-            <span class="live-adjust-val" id="liveInclineVal">2.0</span>
-            <button class="live-adj-btn" onclick="liveAdjustIncline(0.5)" aria-label="Øk stigning">+</button>
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">%</div>
+      </div>
+      <div class="list-row" style="border-bottom:none;padding-bottom:0">
+        <span class="list-label" style="color:var(--text2)">Stigning</span>
+        <span class="list-unit">%</span>
+        <div class="list-stepper">
+          <button onclick="liveAdjustIncline(-0.5)" aria-label="Senk stigning">−</button>
+          <span id="liveInclineVal">2.0</span>
+          <button onclick="liveAdjustIncline(0.5)" aria-label="Øk stigning">+</button>
         </div>
       </div>
       <div class="live-adj-log" id="liveAdjLog"></div>
